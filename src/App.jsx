@@ -67,16 +67,16 @@ function App() {
   const agregarProductoCarrito = (producto) => {
     if (!isLoggedIn) return;
     setProductosCarrito((prev) => {
-      const productoExistente = prev.find((p) => p.id === producto.id);
+      const productoExistente = prev.find((p) => p.id === producto.id && p.variante === producto.variante);
       let nuevosProductos;
       if (productoExistente) {
         nuevosProductos = prev.map((p) =>
-          p.id === producto.id
-            ? { ...p, cantidad: p.cantidad + 1 }
+          p.id === producto.id && p.variante === producto.variante
+            ? { ...p, cantidad: p.cantidad + producto.cantidad }
             : p
         );
       } else {
-        nuevosProductos = [...prev, { ...producto, cantidad: 1 }];
+        nuevosProductos = [...prev, { ...producto, cantidad: producto.cantidad }];
       }
       guardarCarrito(userData.uid, nuevosProductos);
       return nuevosProductos;
