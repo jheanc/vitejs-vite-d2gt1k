@@ -20,11 +20,11 @@ const Card = ({ producto, isLoggedIn, agregarProductoCarrito }) => {
   return (
     <div className="col-md-4 mb-4">
       <div className="card h-100">
-        <img 
-          src={producto.image} 
-          className="card-img-top img-fluid" 
-          alt={producto.title} 
-          style={{ height: '200px', objectFit: 'contain' }} 
+        <img
+          src={producto.image}
+          className="card-img-top img-fluid"
+          alt={producto.title}
+          style={{ height: '200px', objectFit: 'contain' }}
         />
         <div className="card-body d-flex flex-column">
           <h5 className="card-title">{producto.title}</h5>
@@ -34,7 +34,7 @@ const Card = ({ producto, isLoggedIn, agregarProductoCarrito }) => {
                 <del>${producto.price.toFixed(2)}</del>
               </p>
               <p className="card-text text-success font-weight-bold">
-                ${discountedPrice.toFixed(2)} 
+                ${discountedPrice.toFixed(2)}
                 <span className="badge bg-success">15% off</span>
               </p>
             </div>
@@ -42,10 +42,10 @@ const Card = ({ producto, isLoggedIn, agregarProductoCarrito }) => {
             <p className="card-text">${producto.price.toFixed(2)}</p>
           )}
           <p className="card-text flex-grow-1">{producto.description.substring(0, 100)}...</p>
-          <div className="mt-auto">
-            <Link to={`/producto/${producto.id}`} className="btn btn-primary me-2">Ver más</Link>
-            <button 
-              onClick={handleAddToCart} 
+          <div className="mt-auto d-flex flex-column align-items-center">
+            <Link to={`/producto/${producto.id}`} className="btn btn-primary mb-2">Ver más</Link>
+            <button
+              onClick={handleAddToCart}
               className="btn btn-success"
             >
               <FontAwesomeIcon icon={faShoppingCart} /> Agregar

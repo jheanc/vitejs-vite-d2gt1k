@@ -5,7 +5,7 @@ import { guardarCarrito } from '../firebase';
 
 const Carrito = ({ productos, eliminarProductoCarrito, modificarProductoCarrito, user, aplicarCupon, cuponAplicado, calcularTotalConDescuento }) => {
   const [cupon, setCupon] = useState('');
-  
+
   const handleCantidadChange = (id, nuevaCantidad) => {
     if (nuevaCantidad < 1) return;
 
@@ -20,7 +20,10 @@ const Carrito = ({ productos, eliminarProductoCarrito, modificarProductoCarrito,
   };
 
   const calcularSubtotal = () => {
-    return productos.reduce((total, producto) => total + producto.price * producto.cantidad, 0).toFixed(2);
+    return productos.reduce((total, producto) => {
+      const cantidad = producto.cantidad || 1; // Si la cantidad no está definida, se asume 1
+      return total + producto.price * cantidad;
+    }, 0).toFixed(2);
   };
 
   const handleAplicarCupon = () => {
