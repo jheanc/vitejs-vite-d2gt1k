@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart } from '@fortawesome/free-solid-svg-icons';
 import LoginPrompt from './LoginPrompt';
 
-const Card = ({ url, title, price, description, isLoggedIn, agregarProductoCarrito, producto }) => {
+const Card = ({ producto, isLoggedIn, agregarProductoCarrito }) => {
   const [showModal, setShowModal] = useState(false);
 
   const handleAddToCart = () => {
@@ -14,50 +15,42 @@ const Card = ({ url, title, price, description, isLoggedIn, agregarProductoCarri
     }
   };
 
-  const discountedPrice = isLoggedIn ? price * 0.85 : price;
+  const discountedPrice = isLoggedIn ? producto.price * 0.85 : producto.price;
 
   return (
     <div className="col-md-4 mb-4">
       <div className="card h-100">
         <img 
-          src={url} 
+          src={producto.image} 
           className="card-img-top img-fluid" 
-          alt={title} 
+          alt={producto.title} 
           style={{ height: '200px', objectFit: 'contain' }} 
         />
         <div className="card-body d-flex flex-column">
-          <h5 className="card-title">{title}</h5>
+          <h5 className="card-title">{producto.title}</h5>
           {isLoggedIn ? (
             <div>
               <p className="card-text">
-                <del>${price.toFixed(2)}</del>
+                <del>${producto.price.toFixed(2)}</del>
               </p>
               <p className="card-text text-success font-weight-bold">
                 ${discountedPrice.toFixed(2)} 
                 <span className="badge bg-success">15% off</span>
-                <button 
-                  onClick={handleAddToCart} 
-                  className="btn btn-link" 
-                  style={{ padding: 0, marginLeft: '5px' }}
-                >
-                  <FontAwesomeIcon icon={faShoppingCart} />
-                </button>
               </p>
             </div>
           ) : (
-            <p className="card-text">
-              ${price.toFixed(2)} 
-              <button 
-                onClick={handleAddToCart} 
-                className="btn btn-link" 
-                style={{ padding: 0, marginLeft: '5px' }}
-              >
-                <FontAwesomeIcon icon={faShoppingCart} />
-              </button>
-            </p>
+            <p className="card-text">${producto.price.toFixed(2)}</p>
           )}
-          <p className="card-text flex-grow-1">{description.substring(0, 100)}...</p>
-          <a href="#" className="btn btn-primary mt-auto">Ver más</a>
+          <p className="card-text flex-grow-1">{producto.description.substring(0, 100)}...</p>
+          <div className="mt-auto">
+            <Link to={`/producto/${producto.id}`} className="btn btn-primary me-2">Ver más</Link>
+            <button 
+              onClick={handleAddToCart} 
+              className="btn btn-success"
+            >
+              <FontAwesomeIcon icon={faShoppingCart} /> Agregar
+            </button>
+          </div>
         </div>
       </div>
       {showModal && <LoginPrompt onClose={() => setShowModal(false)} />}

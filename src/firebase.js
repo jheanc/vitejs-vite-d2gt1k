@@ -18,8 +18,8 @@ const auth = getAuth();
 
 export const guardarCarrito = async (uid, productos) => {
   try {
-    await setDoc(doc(db, "carritos", uid), { productos });
-    console.log("Carrito guardado para el usuario:", uid);
+    await setDoc(doc(db, "carritos", uid), { productos }, { merge: true });
+    console.log("Carrito guardado:", productos);
   } catch (error) {
     console.error("Error guardando el carrito:", error);
   }
@@ -30,11 +30,10 @@ export const cargarCarrito = async (uid) => {
     const docRef = doc(db, "carritos", uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const data = docSnap.data();
-      console.log("Carrito cargado para el usuario:", uid);
-      return data.productos || [];
+      console.log("Carrito cargado:", docSnap.data().productos);
+      return docSnap.data().productos || [];
     } else {
-      console.log("No hay carrito encontrado para el usuario:", uid);
+      console.log("No hay carrito encontrado para este usuario.");
       return [];
     }
   } catch (error) {

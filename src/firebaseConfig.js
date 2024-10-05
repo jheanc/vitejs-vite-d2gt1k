@@ -1,7 +1,8 @@
 // firebaseConfig.js
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth } from "firebase/auth"; // Importar autenticación de Firebase
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAJHsB23lDM-AiBfbWAwX9CcsUXlyydIco",
   authDomain: "proyectofinaldiplomado-65fe7.firebaseapp.com",
@@ -11,7 +12,8 @@ const firebaseConfig = {
   appId: "1:563298714888:web:d7f378b4c58482d47ad8bd"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+const auth = getAuth(app); // Inicializar autenticación
 
-export { auth };
+export { auth }; // Exportar autenticación para usarla en otros archivos

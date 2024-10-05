@@ -5,7 +5,6 @@ import {
   Routes,
   Route,
   Link,
-  useNavigate
 } from 'react-router-dom';
 import Inicio from './components/Inicio';
 import Quienessomos from './components/Quienessomos';
@@ -13,6 +12,7 @@ import Login from './components/Login';
 import Registro from './components/Registro';
 import Carrito from './components/Carrito';
 import PerfilUsuario from './components/PerfilUsuario';
+import ProductDetail from './components/ProductDetail';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faUser } from '@fortawesome/free-solid-svg-icons';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
@@ -33,7 +33,6 @@ function App() {
           uid: user.uid
         });
         
-        // Cargar el carrito del usuario actual
         const productos = await cargarCarrito(user.uid);
         setProductosCarrito(productos);
       } else {
@@ -46,55 +45,51 @@ function App() {
     return () => unsubscribe();
   }, [auth]);
 
-  const handleLogout = async () => {
-    try {
-      // Guardar el carrito antes de cerrar sesión
-      if (userData) {
-        await guardarCarrito(userData.uid, productosCarrito);
-      }
-      await signOut(auth);
+  const handleLogout = () => {
+    signOut(auth).then(() => {
       setIsLoggedIn(false);
       setUserData(null);
       setProductosCarrito([]);
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error al cerrar sesión:", error);
-    }
+    });
   };
 
-  const agregarProductoCarrito = async (producto) => {
-    if (!isLoggedIn || !userData) return;
-    
-    const nuevosProductos = [...productosCarrito];
-    const productoExistente = nuevosProductos.find(p => p.id === producto.id);
-    
-    if (productoExistente) {
-      productoExistente.cantidad += 1;
-    } else {
-      nuevosProductos.push({ ...producto, cantidad: 1 });
-    }
-    
-    setProductosCarrito(nuevosProductos);
-    await guardarCarrito(userData.uid, nuevosProductos);
+  const agregarProductoCarrito = (producto) => {
+    if (!isLoggedIn) return;
+    setProductosCarrito((prev) => {
+      const productoExistente = prev.find((p) => p.id === producto.id);
+      let nuevosProductos;
+      if (productoExistente) {
+        nuevosProductos = prev.map((p) =>
+          p.id === producto.id
+            ? { ...p, cantidad: p.cantidad + 1 }
+            : p
+        );
+      } else {
+        nuevosProductos = [...prev, { ...producto, cantidad: 1 }];
+      }
+      guardarCarrito(userData.uid, nuevosProductos);
+      return nuevosProductos;
+    });
   };
 
-  const modificarProductoCarrito = async (id, nuevoProducto) => {
-    if (!isLoggedIn || !userData) return;
-    
-    const nuevosProductos = productosCarrito.map(prod => 
-      prod.id === id ? nuevoProducto : prod
-    );
-    
-    setProductosCarrito(nuevosProductos);
-    await guardarCarrito(userData.uid, nuevosProductos);
+  const modificarProductoCarrito = (id, nuevoProducto) => {
+    if (!isLoggedIn) return;
+    setProductosCarrito((prev) => {
+      const nuevosProductos = prev.map((prod) => (prod.id === id ? nuevoProducto : prod));
+      guardarCarrito(userData.uid, nuevosProductos);
+      return nuevosProductos;
+    });
   };
 
-  const eliminarProductoCarrito = async (id) => {
-    if (!isLoggedIn || !userData) return;
-    
-    const nuevosProductos = productosCarrito.filter(prod => prod.id !== id);
-    
-    setProductosCarrito(nuevosProductos);
-    await guardarCarrito(userData.uid, nuevosProductos);
+  const eliminarProductoCarrito = (id) => {
+    if (!isLoggedIn) return;
+    setProductosCarrito((prev) => {
+      const nuevosProductos = prev.filter((prod) => prod.id !== id);
+      guardarCarrito(userData.uid, nuevosProductos);
+      return nuevosProductos;
+    });
   };
 
   return (
@@ -111,7 +106,6 @@ function App() {
               <>
                 <Link to="/carrito" className="nav-link">
                   Carrito <FontAwesomeIcon icon={faShoppingCart} />
-                  {productosCarrito.length > 0 && <span className="badge bg-danger">{productosCarrito.length}</span>}
                 </Link>
                 <Link to="/perfil" className="nav-link">
                   <FontAwesomeIcon icon={faUser} />
@@ -123,12 +117,13 @@ function App() {
         </div>
       </nav>
       <Routes>
-        <Route path="/" element={<Inicio />} />
+        <Route path="/" element={<Inicio isLoggedIn={isLoggedIn} agregarProductoCarrito={agregarProductoCarrito} />} />
         <Route path="/quienessomos" element={<Quienessomos isLoggedIn={isLoggedIn} agregarProductoCarrito={agregarProductoCarrito} />} />
         <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUserData={setUserData} />} />
         <Route path="/registro" element={<Registro setIsLoggedIn={setIsLoggedIn} setUserData={setUserData} />} />
         <Route path="/carrito" element={<Carrito productos={productosCarrito} eliminarProductoCarrito={eliminarProductoCarrito} modificarProductoCarrito={modificarProductoCarrito} />} />
         <Route path="/perfil" element={<PerfilUsuario userData={userData} />} />
+        <Route path="/producto/:id" element={<ProductDetail isLoggedIn={isLoggedIn} agregarProductoCarrito={agregarProductoCarrito} />} />
       </Routes>
     </Router>
   );
