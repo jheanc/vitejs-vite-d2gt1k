@@ -22,7 +22,15 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [productosCarrito, setProductosCarrito] = useState([]);
   const [userData, setUserData] = useState(null);
+  const [cuponAplicado, setCuponAplicado] = useState(null);
   const auth = getAuth();
+
+  const cupones = {
+    'DESCUENTO5': 0.05,
+    'DESCUENTO10': 0.10,
+    'DESCUENTO15': 0.15,
+    'DESCUENTO20': 0.20
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -50,6 +58,7 @@ function App() {
       setIsLoggedIn(false);
       setUserData(null);
       setProductosCarrito([]);
+      setCuponAplicado(null);
     }).catch((error) => {
       console.error("Error al cerrar sesión:", error);
     });
@@ -92,6 +101,24 @@ function App() {
     });
   };
 
+  const aplicarCupon = (cupon) => {
+    if (cupones.hasOwnProperty(cupon)) {
+      setCuponAplicado({
+        codigo: cupon,
+        descuento: cupones[cupon]
+      });
+      return true;
+    }
+    return false;
+  };
+
+  const calcularTotalConDescuento = (total) => {
+    if (cuponAplicado) {
+      return total * (1 - cuponAplicado.descuento);
+    }
+    return total;
+  };
+
   return (
     <Router>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
@@ -121,7 +148,15 @@ function App() {
         <Route path="/quienessomos" element={<Quienessomos isLoggedIn={isLoggedIn} agregarProductoCarrito={agregarProductoCarrito} />} />
         <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUserData={setUserData} />} />
         <Route path="/registro" element={<Registro setIsLoggedIn={setIsLoggedIn} setUserData={setUserData} />} />
-        <Route path="/carrito" element={<Carrito productos={productosCarrito} eliminarProductoCarrito={eliminarProductoCarrito} modificarProductoCarrito={modificarProductoCarrito} />} />
+        <Route path="/carrito" element={<Carrito 
+          productos={productosCarrito} 
+          eliminarProductoCarrito={eliminarProductoCarrito} 
+          modificarProductoCarrito={modificarProductoCarrito}
+          user={userData}
+          aplicarCupon={aplicarCupon}
+          cuponAplicado={cuponAplicado}
+          calcularTotalConDescuento={calcularTotalConDescuento}
+        />} />
         <Route path="/perfil" element={<PerfilUsuario userData={userData} />} />
         <Route path="/producto/:id" element={<ProductDetail isLoggedIn={isLoggedIn} agregarProductoCarrito={agregarProductoCarrito} />} />
       </Routes>
