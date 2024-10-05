@@ -11,8 +11,10 @@ import Quienessomos from './components/Quienessomos';
 import Login from './components/Login';
 import Registro from './components/Registro';
 import Carrito from './components/Carrito';
+import Checkout from './components/Checkout';
 import PerfilUsuario from './components/PerfilUsuario';
 import ProductDetail from './components/ProductDetail';
+import RutaProtegida from './components/RutaProtegida';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faUser } from '@fortawesome/free-solid-svg-icons';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
@@ -148,16 +150,29 @@ function App() {
         <Route path="/quienessomos" element={<Quienessomos isLoggedIn={isLoggedIn} agregarProductoCarrito={agregarProductoCarrito} />} />
         <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} setUserData={setUserData} />} />
         <Route path="/registro" element={<Registro setIsLoggedIn={setIsLoggedIn} setUserData={setUserData} />} />
-        <Route path="/carrito" element={<Carrito 
-          productos={productosCarrito} 
-          eliminarProductoCarrito={eliminarProductoCarrito} 
-          modificarProductoCarrito={modificarProductoCarrito}
-          user={userData}
-          aplicarCupon={aplicarCupon}
-          cuponAplicado={cuponAplicado}
-          calcularTotalConDescuento={calcularTotalConDescuento}
-        />} />
-        <Route path="/perfil" element={<PerfilUsuario userData={userData} />} />
+        <Route path="/carrito" element={
+          <RutaProtegida isLoggedIn={isLoggedIn}>
+            <Carrito 
+              productos={productosCarrito} 
+              eliminarProductoCarrito={eliminarProductoCarrito} 
+              modificarProductoCarrito={modificarProductoCarrito}
+              user={userData}
+              aplicarCupon={aplicarCupon}
+              cuponAplicado={cuponAplicado}
+              calcularTotalConDescuento={calcularTotalConDescuento}
+            />
+          </RutaProtegida>
+        } />
+        <Route path="/checkout" element={
+          <RutaProtegida isLoggedIn={isLoggedIn}>
+            <Checkout />
+          </RutaProtegida>
+        } />
+        <Route path="/perfil" element={
+          <RutaProtegida isLoggedIn={isLoggedIn}>
+            <PerfilUsuario userData={userData} />
+          </RutaProtegida>
+        } />
         <Route path="/producto/:id" element={<ProductDetail isLoggedIn={isLoggedIn} agregarProductoCarrito={agregarProductoCarrito} />} />
       </Routes>
     </Router>
