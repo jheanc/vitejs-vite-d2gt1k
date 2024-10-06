@@ -1,30 +1,45 @@
+// src/components/Carrito.jsx
 import React, { useEffect, useState } from 'react'; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faMinus, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { guardarCarrito } from '../firebase';
 import { Link } from 'react-router-dom';
+import { getCartItems, updateCartItem, removeFromCart } from '../firebaseServices';
 
-const Carrito = ({ productos, eliminarProductoCarrito, modificarProductoCarrito, user, aplicarCupon, cuponAplicado, calcularTotalConDescuento }) => {
+const Carrito = ({ user, aplicarCupon, cuponAplicado, calcularTotalConDescuento }) => {
+  const [productos, setProductos] = useState([]);
   const [cupon, setCupon] = useState('');
 
-  const handleCantidadChange = (id, nuevaCantidad) => {
-    if (nuevaCantidad < 1) return;
-
-    const productoExistente = productos.find((producto) => producto.id === id);
-    if (productoExistente) {
-      modificarProductoCarrito(id, { ...productoExistente, cantidad: nuevaCantidad });
+  useEffect(() => {
+    if (user?.uid) {
+      fetchCartItems();
     }
+  }, [user]);
+
+  const fetchCartItems = async () => {
+    const items = await getCartItems(user.uid);
+    setProductos(items);
   };
 
-  const incrementarCantidad = (id) => {
+  const handleCantidadChange = async (id, nuevaCantidad) => {
+    if (nuevaCantidad < 1) return;
+    await updateCartItem(user.uid, id, { cantidad: nuevaCantidad });
+    fetchCartItems();
+  };
+
+  const eliminarProductoCarrito = async (id) => {
+    await removeFromCart(user.uid, id);
+    fetchCartItems();
+  };
+
+  const incrementarCantidad = async (id) => {
     const producto = productos.find(p => p.id === id);
-    handleCantidadChange(id, (producto.cantidad || 1) + 1);
+    await handleCantidadChange(id, (producto.cantidad || 1) + 1);
   };
 
-  const decrementarCantidad = (id) => {
+  const decrementarCantidad = async (id) => {
     const producto = productos.find(p => p.id === id);
     if (producto.cantidad > 1) {
-      handleCantidadChange(id, producto.cantidad - 1);
+      await handleCantidadChange(id, producto.cantidad - 1);
     }
   };
 
@@ -45,12 +60,6 @@ const Carrito = ({ productos, eliminarProductoCarrito, modificarProductoCarrito,
       alert('Cupón inválido');
     }
   };
-
-  useEffect(() => {
-    if (user?.uid) {
-      guardarCarrito(user.uid, productos);
-    }
-  }, [productos, user]);
 
   const subtotal = calcularSubtotal();
   const total = calcularTotalConDescuento(parseFloat(subtotal)).toFixed(2);
