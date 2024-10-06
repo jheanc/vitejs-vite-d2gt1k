@@ -19,6 +19,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faUser } from '@fortawesome/free-solid-svg-icons';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { cargarCarrito, guardarCarrito } from './firebase';
+import { doc, getDoc } from "firebase/firestore";
+import { db } from './firebase';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -38,13 +40,28 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setIsLoggedIn(true);
-        setUserData({
-          email: user.email,
-          uid: user.uid
-        });
-        
-        const productos = await cargarCarrito(user.uid);
-        setProductosCarrito(productos);
+        try {
+          const userDocRef = doc(db, "usuarios", user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            setUserData({
+              uid: user.uid,
+              email: user.email,
+              nombre: userDoc.data().nombre,
+              sexo: userDoc.data().sexo
+            });
+          } else {
+            setUserData({
+              uid: user.uid,
+              email: user.email
+            });
+          }
+          
+          const productos = await cargarCarrito(user.uid);
+          setProductosCarrito(productos);
+        } catch (error) {
+          console.error("Error al cargar datos del usuario:", error);
+        }
       } else {
         setIsLoggedIn(false);
         setUserData(null);
@@ -66,41 +83,45 @@ function App() {
     });
   };
 
-  const agregarProductoCarrito = (producto) => {
-    if (!isLoggedIn) return;
-    setProductosCarrito((prev) => {
-      const productoExistente = prev.find((p) => p.id === producto.id && p.variante === producto.variante);
-      let nuevosProductos;
+  const agregarProductoCarrito = async (producto) => {
+    if (!isLoggedIn || !userData) return;
+    try {
+      const nuevosProductos = [...productosCarrito];
+      const productoExistente = nuevosProductos.find((p) => p.id === producto.id);
       if (productoExistente) {
-        nuevosProductos = prev.map((p) =>
-          p.id === producto.id && p.variante === producto.variante
-            ? { ...p, cantidad: p.cantidad + producto.cantidad }
-            : p
-        );
+        productoExistente.cantidad = (productoExistente.cantidad || 1) + 1;
       } else {
-        nuevosProductos = [...prev, { ...producto, cantidad: producto.cantidad }];
+        nuevosProductos.push({ ...producto, cantidad: 1 });
       }
-      guardarCarrito(userData.uid, nuevosProductos);
-      return nuevosProductos;
-    });
+      await guardarCarrito(userData.uid, nuevosProductos);
+      setProductosCarrito(nuevosProductos);
+    } catch (error) {
+      console.error("Error al agregar producto al carrito:", error);
+    }
   };
 
-  const modificarProductoCarrito = (id, nuevoProducto) => {
-    if (!isLoggedIn) return;
-    setProductosCarrito((prev) => {
-      const nuevosProductos = prev.map((prod) => (prod.id === id ? nuevoProducto : prod));
-      guardarCarrito(userData.uid, nuevosProductos);
-      return nuevosProductos;
-    });
+  const modificarProductoCarrito = async (id, nuevoProducto) => {
+    if (!isLoggedIn || !userData) return;
+    try {
+      const nuevosProductos = productosCarrito.map((prod) => 
+        prod.id === id ? nuevoProducto : prod
+      );
+      await guardarCarrito(userData.uid, nuevosProductos);
+      setProductosCarrito(nuevosProductos);
+    } catch (error) {
+      console.error("Error al modificar producto en el carrito:", error);
+    }
   };
 
-  const eliminarProductoCarrito = (id) => {
-    if (!isLoggedIn) return;
-    setProductosCarrito((prev) => {
-      const nuevosProductos = prev.filter((prod) => prod.id !== id);
-      guardarCarrito(userData.uid, nuevosProductos);
-      return nuevosProductos;
-    });
+  const eliminarProductoCarrito = async (id) => {
+    if (!isLoggedIn || !userData) return;
+    try {
+      const nuevosProductos = productosCarrito.filter((prod) => prod.id !== id);
+      await guardarCarrito(userData.uid, nuevosProductos);
+      setProductosCarrito(nuevosProductos);
+    } catch (error) {
+      console.error("Error al eliminar producto del carrito:", error);
+    }
   };
 
   const aplicarCupon = (cupon) => {
@@ -135,6 +156,7 @@ function App() {
               <>
                 <Link to="/carrito" className="nav-link">
                   Carrito <FontAwesomeIcon icon={faShoppingCart} />
+                  <span className="badge bg-secondary">{productosCarrito.length}</span>
                 </Link>
                 <Link to="/perfil" className="nav-link">
                   <FontAwesomeIcon icon={faUser} />
