@@ -22,7 +22,7 @@ import CategoryManagement from './components/CategoryManagement';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faUser } from '@fortawesome/free-solid-svg-icons';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { getUserData, getCartItems } from './firebaseServices';
+import { getUserData, getCartItems, addToCart, updateCartItem, removeFromCart } from './firebaseServices';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -75,8 +75,8 @@ function App() {
   const agregarProductoCarrito = async (producto) => {
     if (!isLoggedIn || !userData) return;
     try {
-      await addToCart(userData.id, producto);
-      const nuevosProductos = await getCartItems(userData.id);
+      await addToCart(userData.uid, producto);
+      const nuevosProductos = await getCartItems(userData.uid);
       setProductosCarrito(nuevosProductos);
     } catch (error) {
       console.error("Error al agregar producto al carrito:", error);
@@ -86,8 +86,8 @@ function App() {
   const modificarProductoCarrito = async (id, nuevoProducto) => {
     if (!isLoggedIn || !userData) return;
     try {
-      await updateCartItem(userData.id, id, nuevoProducto);
-      const nuevosProductos = await getCartItems(userData.id);
+      await updateCartItem(userData.uid, id, nuevoProducto);
+      const nuevosProductos = await getCartItems(userData.uid);
       setProductosCarrito(nuevosProductos);
     } catch (error) {
       console.error("Error al modificar producto en el carrito:", error);
@@ -97,8 +97,8 @@ function App() {
   const eliminarProductoCarrito = async (id) => {
     if (!isLoggedIn || !userData) return;
     try {
-      await removeFromCart(userData.id, id);
-      const nuevosProductos = await getCartItems(userData.id);
+      await removeFromCart(userData.uid, id);
+      const nuevosProductos = await getCartItems(userData.uid);
       setProductosCarrito(nuevosProductos);
     } catch (error) {
       console.error("Error al eliminar producto del carrito:", error);

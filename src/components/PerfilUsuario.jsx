@@ -12,25 +12,11 @@ const PerfilUsuario = ({ userData }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const cargarPerfil = async () => {
-      if (userData && userData.uid) {
-        try {
-          const docRef = doc(db, "usuarios", userData.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            setPerfil(docSnap.data());
-            setNombre(docSnap.data().nombre || '');
-            setSexo(docSnap.data().sexo || '');
-          } else {
-            setError("No se encontró el perfil del usuario");
-          }
-        } catch (error) {
-          console.error("Error al cargar el perfil:", error);
-          setError("Error al cargar el perfil del usuario");
-        }
-      }
-    };
-    cargarPerfil();
+    if (userData) {
+      setPerfil(userData);
+      setNombre(userData.nombre || '');
+      setSexo(userData.sexo || '');
+    }
   }, [userData]);
 
   const handleSubmit = async (e) => {
